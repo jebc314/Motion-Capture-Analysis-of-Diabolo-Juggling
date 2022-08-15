@@ -1,0 +1,21 @@
+<?xml version='1.0'?>
+<sdf version='1.7'><model name='side_pos'>
+  <pose>0 0 7 0 0 0</pose>
+  <link name='link_1'>
+    <turnGravityOff>1</turnGravityOff>
+    <gravity>0</gravity>
+    <visual name='visual'>
+      <geometry>
+        <cylinder><radius>2.5</radius><length>0.1</length></cylinder>
+      </geometry>
+      <material>
+        <script>
+          <name>Gazebo/Grey</name>
+          <uri>file://media/materials/scripts/gazebo.material</uri>
+        </script>
+      </material>
+    </visual>
+  </link>
+  <plugin name="model_push" filename="libmodel_revolve_z.so"/>
+</model>
+</sdf>

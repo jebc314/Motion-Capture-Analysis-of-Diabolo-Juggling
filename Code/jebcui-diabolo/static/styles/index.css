@@ -1,0 +1,104 @@
+    * { margin: 0; }
+
+      html, body {
+        box-sizing: border-box;
+        overflow-x: hidden;
+
+        padding: 0;
+        margin: 0;
+        width: 100%;
+      }
+      #container {
+        padding: 2em;
+        /*
+        height: 50em;
+        width: 80%;
+        */
+        height: 30em;
+        width: 80%;
+      }
+
+      header {
+        padding: 1em;
+        background-color: #00b2ff;
+        color: white;
+      }
+      #title{
+        font-size: 32pt;
+      }
+
+      #banner{
+        padding: 1em;
+      }
+
+      button.banner-options{
+        background-color: transparent;
+        font-family: inherit;
+        font-size: 17pt;
+        cursor: pointer;
+
+        border-style: solid;
+        border-color: #00b2ff;
+        border-radius: 1pt;
+
+        transition: all 0.2s ease-in-out;
+
+        margin-right: 1em;
+        padding: 2pt;
+      }
+      button.banner-options:hover{
+        background-color: #00b2ff;
+        color: white;
+      }
+      button.banner-options:active{
+        background-color: #008cc9;
+        color: white;
+      }
+
+      #selected-label{
+        display: inline;
+        margin-right: 1em;
+        padding: 2pt;
+        font-size: 17pt;
+        text-decoration: underline;
+      }
+
+      .select{
+        display: inline;
+        margin-right: 1em;
+        padding: 2pt;
+        font-size: 17pt;
+      }
+      .select>select{
+        font-size: inherit;
+      }
+      .select option{
+        font-size: inherit;
+      }
+
+      #url-div{
+        padding: 1em;
+      }
+
+      center{
+        margin-bottom: 2em;
+      }
+
+      #description{
+        padding: 1em;
+        background-color: #00b2ff;
+        color: white;
+        font-size: 15pt;
+        text-align: center;
+      }
+
+      .heading{
+        font-size: 20pt;
+      }
+
+      .about{
+        padding: 1em;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }

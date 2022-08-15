@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <world name="default">
+    <!-- A global light source -->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <!-- A ground plane -->
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <!-- Custom models -->
+    <include>
+      <pose>200 200 200 0 0 0</pose>	
+      <uri>model://side_pos</uri>
+    </include>
+    <include>
+    <pose>200 200 200 0 0 0</pose>
+      <uri>model://side_neg</uri>
+    </include>
+    <include>
+      <uri>model://stick_right</uri>
+    </include>
+    <include>
+      <uri>model://stick_left</uri>
+    </include>
+    <include>
+      <uri>model://my_diabolo</uri>
+    </include>
+  </world>
+</sdf>

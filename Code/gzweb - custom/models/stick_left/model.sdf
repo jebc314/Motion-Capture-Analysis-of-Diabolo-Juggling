@@ -1,0 +1,29 @@
+<?xml version='1.0'?>
+<sdf version='1.7'><model name='stick_left'>
+  <pose>150 150 150 0 0 0</pose>
+  <link name="link">
+      <gravity>0</gravity>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>model://stick_left/meshes/tinker.obj</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>model://stick_left/meshes/tinker.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+</model>
+</sdf>
+

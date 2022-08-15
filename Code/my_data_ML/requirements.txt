@@ -1,0 +1,8 @@
+matplotlib
+numpy
+pandas
+pyquaternion
+scipy
+sklearn
+tensorflow
+vectormath

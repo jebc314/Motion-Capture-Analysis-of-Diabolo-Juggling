@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+  <head>
+    <title>[GzWeb] Embedded</title>
+    <meta charset="utf-8">
+    <script src="/home/jebcu/gzweb/gz3d/build/gz3d.js"></script>
+    <script src="{{ url_for('static', filename='scripts/gz3d.js') }}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='scripts/jquery.csv.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/index.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf-8">
+        var socket;
+        var viconDataIntervalId = -1;
+        var viconDataSave = [];
+        $(document).ready(function() {
+         
+          // sending a connect request to the server.
+          socket = io.connect();
+
+          socket.on('connect', function() {
+            socket.emit('my event', {data: 'I\'m connected!'});
+          });
+        
+          socket.on('vicondata', function(msg){
+            console.log(msg);
+            $('#moves_description').text(msg);
+            viconDataSave.push(msg);
+          });
+        });
+        function get_vicon_datastream() {
+          if (viconDataIntervalId == -1) {
+          viconDataIntervalId = setInterval(function(){
+            socket.emit('getvicondata')
+          }, 500);
+          }else{
+            clearInterval(viconDataIntervalId);
+            $('#moves_description').text('No move selected!');
+            viconDataIntervalId = -1;
+            const downloadToFile = (content, filename, contentType) => {
+              const a = document.createElement('a');
+              const file = new Blob([content], {type: contentType});
+              
+              a.href= URL.createObjectURL(file);
+              a.download = filename;
+              a.click();
+              
+              URL.revokeObjectURL(a.href);
+              };
+
+              downloadToFile(viconDataSave.join('\n----------\n'), 'vicon_data.txt', 'text/plain');
+              viconDataSave = [];
+          }
+        }
+    </script>
+  </head>
+
+  <body>
+    <header>
+      <p><span id="title">Diabolo Motion Capture Analysis</span></p>
+      <p>Jeb Cui in TJ Computer Systems Lab 2021-2022</p>
+    </header>
+
+    <section id="banner">
+      <button class="banner-options" id="start-button" accesskey="P" onclick="start_button(this.value)">P̲lay</button>
+      <p id="selected-label">Select an option to start</p>
+      <!--
+      <form class="select" action="">
+        <select name="recordings" id="recordings" accesskey="R" onchange="$('#selected-label').text('Selected: ' + value);$('#start-button').attr('value', value);">
+          <option value="None">Select R̲ecording</option>
+          <option value="Recording 1">R̲ecording 1</option>
+          <option value="Recording 2">R̲ecording 2</option>
+          <option value="Recording 3">R̲ecording 3</option>
+          <option value="Recording 4">R̲ecording 4</option>
+        </select>
+      </form>
+      -->
+      <form class="select" action="">
+        <select name="moves" id="moves" accesskey="M" onchange="$('#selected-label').text('Selected: ' + value);$('#start-button').attr('value', value);">
+          <option value="None">Select M̲ove</option>
+          <option value="Move 1">M̲ove 1</option>
+          <option value="Move 2">M̲ove 2</option>
+          <option value="Move 3">M̲ove 3</option>
+          <option value="Move 4">M̲ove 4</option>
+        </select>
+      </form>
+      <!--
+      <form class="select" action="">
+        <select name="visuals" id="visuals" accesskey="V" onchange="$('#selected-label').text('Selected: ' + value);$('#start-button').attr('value', value);">
+          <option value="None">Select V̲isual Analysis</option>
+          <option value="Analysis 1">V̲isual Analysis 1</option>
+          <option value="Analysis 2">V̲isual Analysis 2</option>
+          <option value="Analysis 3">V̲isual Analysis 3</option>
+          <option value="Analysis 4">V̲isual Analysis 4</option>
+        </select>
+      </form>
+      -->
+      <button class="banner-options"  id="run_simulation" accesskey="S">Run S̲imulation</button>
+      <button class="banner-options" id="move_download" accesskey="L" move="">Downl̲oad</button>
+      <input type="file" id="fileInput" single accept="text/*" style="display: none;">
+      <button class="banner-options" id="move_upload" accesskey="U">U̲pload</button>
+      <button class="banner-options" id="vicon_datastream" accesskey="V" onclick="get_vicon_datastream()">Toggle V̲icon Datastream</button>
+    </section>
+
+    <div id="url-div">
+      <span>Server URL</span>
+      <input type="text" id="url-input" value="localhost:8080"></input>
+      <button onclick="init()" accesskey="C">C̲onnect!</button>
+    </div>
+
+    <center>
+      <div id="container">
+        <img src="https://cdn-icons-png.flaticon.com/512/1169/1169675.png" width="500">
+      </div>
+    </center>
+
+    <section class="about" id="description">
+      <p id="moves_description">No move selected!</p>
+    </section>
+
+    <section class="about" id="instruction">
+      <p><span class="heading">Instructions:</span></p>
+      <ul>
+        <li>To activate and load up the visual, please press the connect button to connect to the display.</li>
+        <li>The dropdown menu labeled "Select Move" allows you to choose a specific move to view.</li>
+        <li>To upload recorded motion capture data, please press the upload button and select the file you want to upload.</li>
+        <li>To run a simulation on uploaded data, please press the "Run Simulation" button.</li>
+        <li>Once you select a specific move or ran a simulation, please press start to display the movements.</li>
+        <li>If you want to download the data currently loaded on the display (the data for the movements), please use the download button.</li>
+        <li>Right above the instructions is the description box which provides a useful summary of the movements currently displayed.</li>
+        <li>You can find out more about the diabolo and the research in the sections below.</li>
+      </ul>
+    </section>
+
+    <section class="about" id="diabolo">
+      <p><span class="heading">What is a diabolo?</span></p>
+    </section>
+
+    <section class="about" id="research">
+      <p><span class="heading">What was the research?</span></p>
+    </section>
+    
+    <script src="{{ url_for('static', filename='scripts/index.js') }}"></script>
+
+  </body>
+</html>

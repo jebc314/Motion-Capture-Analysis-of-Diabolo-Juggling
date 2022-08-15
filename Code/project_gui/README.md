@@ -1,0 +1,1 @@
+This directory contains the code for the initial GUI overlay for Gazebo I created at the beginning of my project.

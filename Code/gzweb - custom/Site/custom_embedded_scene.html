@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+  <head>
+    <title>[GzWeb] Embedded</title>
+    <meta charset="utf-8">
+    <script src="../gz3d/build/gz3d.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+      body {
+        padding: 2em;
+        font-family: sans;
+      }
+      #container {
+        padding: 2em;
+        height: 50em;
+        width: 80%;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <h2>
+      Embedded GzWeb
+    </h2>
+
+    <p>
+      This example shows how to embed a GzWeb scene which is served from another URL into a page.
+    </p>
+
+    <p>
+      You can test it as follows:
+    </p>
+
+    <ol>
+      <li>Launch Gazebo's backend:<pre>gzserver</pre></li>
+      <li>Launch GzWeb's backend:<pre>npm start</pre></li>
+      <li>Fill in the URL box with the GzWeb backend URL and press Connect!</li>
+      <li><button id='move1'>Move 1</button></li>
+      <li><button id='move2'>Move 2</button></li>
+      <li><button id='move3'>Move 3</button></li>
+      <li><button id="move_download" move="">Download</button></li>
+      <li><p id="moves_description">No move selected!</p></li>
+    </ol>
+
+    <div id="url-div">
+      <span>Server URL</span>
+      <input type="text" id="url-input" value="localhost:8080"></input>
+      <button onclick="init()">Connect!</button>
+    </div>
+
+    <center>
+      <div id="container">
+      </div>
+    </center>
+
+    <script>
+      if (!Detector.webgl)
+        Detector.addGetWebGLMessage();
+
+      var scene, container, playDiv;
+
+      // Initialization
+      function init()
+      {
+        // Get URL
+        var url = document.getElementById('url-input').value;
+
+        // Clear URL input div
+        var urlDiv = document.getElementById('url-div');
+        while (urlDiv.firstChild) {
+          urlDiv.removeChild(urlDiv.firstChild);
+        }
+
+        // Initialize objects
+        var shaders = new GZ3D.Shaders();
+        scene = new GZ3D.Scene(shaders);
+        var iface = new GZ3D.GZIface(scene, url);
+        var sdfparser = new GZ3D.SdfParser(scene, undefined, iface);
+
+        // Listen to simulation events using the emitter
+        scene.emitter.on('setPaused', serverPaused);
+
+        // Configure scene
+        scene.grid.visible = true;
+
+        // Append to dom
+        container = document.getElementById( 'container' );
+        container.appendChild(scene.getDomElement());
+
+        window.addEventListener('resize', onWindowResize, false);
+        onWindowResize();
+
+        // Add URL to page
+        var urlHeader = document.createElement("h3");
+        urlHeader.appendChild(document.createTextNode("Connected to " + url));
+        urlDiv.appendChild(urlHeader);
+
+        // This will hold a play/pause button according to info coming from the
+        // server
+        playDiv = document.createElement("div");
+        urlDiv.appendChild(playDiv);
+
+        
+        scene.allModels = ['side_pos', 'side_neg', 'stick_pos', 'stick_neg'];
+        scene.currentIntervalId = null;
+
+        
+        // Button for move 1 with id move1
+        $('#move1').click(function(){
+            // Emits value move1 for listener custom-moves
+            scene.emitter.emit('custom_moves', 'move1');
+            console.log('move1 value for custom_moves listener');
+        });
+
+        // Button for move 2 with id move2
+        $('#move2').click(function(){
+            // Emits value move2 for listener custom-moves
+            scene.emitter.emit('custom_moves', 'move2');
+            console.log('move2 value for custom_moves listener');
+        });
+
+        // Button for move 2 with id move2
+        $('#move3').click(function(){
+            // Emits value move3 for listener custom-moves
+            scene.emitter.emit('custom_moves', 'move3');
+            console.log('move3 value for custom_moves listener');
+        });
+
+        // Download button
+        $('#move_download').click(function(){
+            const downloadToFile = (content, filename, contentType) => {
+                const a = document.createElement('a');
+                const file = new Blob([content], {type: contentType});
+                
+                a.href= URL.createObjectURL(file);
+                a.download = filename;
+                a.click();
+                
+                URL.revokeObjectURL(a.href);
+              };
+
+              downloadToFile($('#move_download').attr('move'), 'move_data.txt', 'text/plain');
+        });
+
+        // On custom_moves
+    scene.emitter.on('custom_moves',
+        function(move) {
+            $('#move_download').attr('move', move);
+            if (scene.currentIntervalId !== null) {
+                clearInterval(scene.currentIntervalId);
+            }
+            // Move all models away
+            scene.allModels.forEach(function (item, index) {
+              var model = scene.getByName(item);
+              // Move 
+              model.position.x = 100;
+              model.position.y = 100;
+              model.position.z = 100;
+            });
+
+            // what the move does
+            var entity1 = null;
+            var name1 = null;
+            var entity2 = null;
+            var name2 = null;
+            var entity3 = null;
+            var name3 = null;
+            var entity4 = null;
+            var name4 = null;
+            var intervalId = null;
+            var varCounter = null;
+            var varName = null;
+            if (move === 'move1'){
+                console.log(move + ' value recieved by custom_moves listener');
+                console.log(scene);
+
+                $('#moves_description').text('These two long cylinders \nrepresent the sticks \nused in diabolo play.');
+
+                // Move stick_pos
+                var obj = scene.getByName('stick_pos');
+                console.log(obj);
+                obj.position.x = 6;
+                obj.position.y = 0;
+                obj.position.z = 15;
+
+                // move stick_pos
+                var obj = scene.getByName('stick_neg');
+                console.log(obj);
+                obj.position.x = -6;
+                obj.position.y = 0;
+                obj.position.z = 15;
+
+                intervalId = null;
+                varCounter = 0;
+                varName = function(){
+                    if(varCounter <= 100) {
+                        varCounter++;
+
+                        var angle = varCounter/10 % 2 * Math.PI;
+                        // stick_pos movement
+                        var model = scene.getByName('stick_pos');
+                        model.position.x = 6 + 2*Math.cos(angle);
+                        model.position.y = 0;
+                        model.position.z = 15 + 2*Math.sin(angle);
+
+                        var roll = 1.57;
+                        var pitch = 0;
+                        var yaw = 0;
+
+                        var qx = Math.sin(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) - Math.cos(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2);
+                        var qy = Math.cos(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2);
+                        var qz = Math.cos(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2) - Math.sin(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2);
+                        var qw = Math.cos(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2);
+
+                        model.quaternion.w = qw;
+                        model.quaternion.x = qx;
+                        model.quaternion.y = qy;
+                        model.quaternion.z = qz;
+
+                        // stick_neg movement
+                        model = scene.getByName('stick_neg');
+                        model.position.x = -6 + 2*Math.cos(angle);
+                        model.position.y = 0;
+                        model.position.z = 15 + 2*Math.sin(angle);
+
+                        roll = 1.57;
+                        pitch = 0;
+                        yaw = 0;
+
+                        qx = Math.sin(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) - Math.cos(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2);
+                        qy = Math.cos(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2);
+                        qz = Math.cos(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2) - Math.sin(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2);
+                        qw = Math.cos(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2);
+
+                        model.quaternion.w = qw;
+                        model.quaternion.x = qx;
+                        model.quaternion.y = qy;
+                        model.quaternion.z = qz;
+
+                        // console.log('stick_neg_0 moved');
+                    } else {
+                        clearInterval(intervalId);
+                    }
+                };
+                    
+                intervalId = setInterval(varName, 100);
+                scene.currentIntervalId = intervalId;
+            }else if (move === 'move2') {
+                console.log(move + ' value recieved by custom_moves listener');
+                console.log(scene);
+
+                $('#moves_description').text('These two disks represent \nthe sides of a diabolo \nrotating around the z-axis.');
+
+                // move side_pos to the right position
+                var obj = scene.getByName('side_pos');
+                console.log(obj);
+                obj.position.x = 0;
+                obj.position.y = 0;
+                obj.position.z = 7;
+
+                // move side_neg to the right position
+                obj = scene.getByName('side_neg');
+                console.log(obj);
+                obj.position.x = 0;
+                obj.position.y = 0;
+                obj.position.z = 7;
+
+                intervalId = null;
+                varCounter = 0;
+                varName = function(){
+                    if(varCounter <= 100) {
+                        varCounter++;
+
+                        var angle = varCounter/10 % (2 * Math.PI);
+                        // side_pos movement
+                        var model = scene.getByName('side_pos');
+                        model.position.x = 4*Math.cos(angle);
+                        model.position.y = 4*Math.sin(angle);
+                        model.position.z = 7;
+
+                        var roll = 0;
+                        var pitch = 1.57;
+                        var yaw = angle;
+
+                        var qx = Math.sin(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) - Math.cos(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2);
+                        var qy = Math.cos(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2);
+                        var qz = Math.cos(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2) - Math.sin(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2);
+                        var qw = Math.cos(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2);
+
+                        model.quaternion.w = qw;
+                        model.quaternion.x = qx;
+                        model.quaternion.y = qy;
+                        model.quaternion.z = qz;
+
+                        // side_neg movement
+                        // console.log(angle);
+                        angle = (varCounter/10 + Math.PI) % (2 * Math.PI);
+                        // console.log(angle);
+                        model = scene.getByName('side_neg');
+                        model.position.x = 4*Math.cos(angle);
+                        model.position.y = 4*Math.sin(angle);
+                        model.position.z = 7;
+
+                        roll = 0;
+                        pitch = 1.57;
+                        yaw = angle;
+
+                        qx = Math.sin(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) - Math.cos(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2);
+                        qy = Math.cos(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2);
+                        qz = Math.cos(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2) - Math.sin(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2);
+                        qw = Math.cos(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2);
+
+                        model.quaternion.w = qw;
+                        model.quaternion.x = qx;
+                        model.quaternion.y = qy;
+                        model.quaternion.z = qz;
+                    } else {
+                        clearInterval(intervalId);
+                    }
+                };
+                    
+                intervalId = setInterval(varName, 100);
+                scene.currentIntervalId = intervalId;
+            } else if (move==='move3') {
+                console.log(move + ' value recieved by custom_moves listener');
+                console.log(scene);
+                
+                $('#moves_description').text('This is the combination \nof moves 1 and 2.');
+
+                // move stick_pos
+                var obj = scene.getByName('stick_pos');
+                console.log(obj);
+                obj.position.x = 6;
+                obj.position.y = 0;
+                obj.position.z = 15;
+                
+                // move stick_pos
+                obj = scene.getByName('stick_neg');
+                console.log(obj);
+                obj.position.x = -6;
+                obj.position.y = 0;
+                obj.position.z = 15;
+                
+                // move stick_pos
+                obj = scene.getByName('side_pos');
+                console.log(obj);
+                obj.position.x = 0;
+                obj.position.y = 0;
+                obj.position.z = 7;
+                
+                // move stick_pos
+                obj = scene.getByName('side_neg');
+                console.log(obj);
+                obj.position.x = 0;
+                obj.position.y = 0;
+                obj.position.z = 7;
+                
+                intervalId = null;
+                varCounter = 0;
+                varName = function(){
+                    if(varCounter <= 100) {
+                        varCounter++;
+                
+                        var angle = varCounter/10 % (2 * Math.PI);
+                        // stick_pos movement
+                        var model = scene.getByName('stick_pos');
+                        model.position.x = 6 + 2*Math.cos(angle);
+                        model.position.y = 0;
+                        model.position.z = 15 + 2*Math.sin(angle);
+            
+                        var roll = 1.57;
+                        var pitch = 0;
+                        var yaw = 0;
+            
+                        var qx = Math.sin(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) - Math.cos(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2);
+                        var qy = Math.cos(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2);
+                        var qz = Math.cos(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2) - Math.sin(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2);
+                        var qw = Math.cos(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2);
+            
+                        model.quaternion.w = qw;
+                        model.quaternion.x = qx;
+                        model.quaternion.y = qy;
+                        model.quaternion.z = qz;
+                
+                        // stick_neg movement
+                        model = scene.getByName('stick_neg');
+                        model.position.x = -6 + 2*Math.cos(angle);
+                        model.position.y = 0;
+                        model.position.z = 15 + 2*Math.sin(angle);
+                
+                        roll = 1.57;
+                        pitch = 0;
+                        yaw = 0;
+                
+                        qx = Math.sin(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) - Math.cos(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2);
+                        qy = Math.cos(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2);
+                        qz = Math.cos(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2) - Math.sin(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2);
+                        qw = Math.cos(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2);
+                
+                        model.quaternion.w = qw;
+                        model.quaternion.x = qx;
+                        model.quaternion.y = qy;
+                        model.quaternion.z = qz;
+                
+                        // side_pos movement
+                        model = scene.getByName('side_pos');
+                        model.position.x = 4*Math.cos(angle);
+                        model.position.y = 4*Math.sin(angle);
+                        model.position.z = 7;
+                
+                        roll = 0;
+                        pitch = 1.57;
+                        yaw = angle;
+                
+                        qx = Math.sin(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) - Math.cos(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2);
+                        qy = Math.cos(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2);
+                        qz = Math.cos(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2) - Math.sin(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2);
+                        qw = Math.cos(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2);
+                
+                        model.quaternion.w = qw;
+                        model.quaternion.x = qx;
+                        model.quaternion.y = qy;
+                        model.quaternion.z = qz;
+                
+                        // side_neg movement
+                        // console.log(angle);
+                        angle = (varCounter/10 + Math.PI) % (2 * Math.PI);
+                        // console.log(angle);
+                        model = scene.getByName('side_neg');
+                        model.position.x = 4*Math.cos(angle);
+                        model.position.y = 4*Math.sin(angle);
+                        model.position.z = 7;
+                
+                        roll = 0;
+                        pitch = 1.57;
+                        yaw = angle;
+                
+                        qx = Math.sin(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) - Math.cos(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2);
+                        qy = Math.cos(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2);
+                        qz = Math.cos(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2) - Math.sin(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2);
+                        qw = Math.cos(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2);
+                
+                        model.quaternion.w = qw;
+                        model.quaternion.x = qx;
+                        model.quaternion.y = qy;
+                        model.quaternion.z = qz;
+                    } else {
+                        clearInterval(intervalId);
+                    }
+                };
+                    
+                intervalId = setInterval(varName, 100);
+                scene.currentIntervalId = intervalId;
+            }
+        }
+    );  
+
+        animate();
+        
+        // Set the camera in the right position and angle
+        var camera = scene.camera;
+        camera.position.x = 0;
+        camera.position.y = -45;
+        camera.position.z = 40;
+        camera.quaternion.x = 0.383;
+        camera.quaternion.y = 0;
+        camera.quaternion.z = 0
+        camera.quaternion.w = 0.924;
+      }
+
+      // Callback when window is resized
+      function onWindowResize()
+      {
+        scene.setSize(container.clientWidth, container.clientHeight);
+      }
+
+      // Recursively called animation loop
+      function animate()
+      {
+        requestAnimationFrame(animate);
+        scene.render();
+      }
+
+      // Callback when server updates play/pause stats
+      function serverPaused(_paused)
+      {
+        if (_paused)
+          setButtonPlay();
+        else
+          setButtonPause();
+      }
+
+      // Callback when user requests to play simulation
+      function userPlay()
+      {
+        // Send commands by using the emitter
+        scene.emitter.emit('pause', false);
+        setButtonPause();
+      }
+
+      // Callback when user requests to pause simulation
+      function userPause()
+      {
+        scene.emitter.emit('pause', true);
+        setButtonPlay();
+      }
+
+      // Update the play/pause button so it says play
+      function setButtonPlay()
+      {
+        playDiv.innerHTML = "<button onclick='userPlay()'>Play!</button>";
+      }
+
+      // Update the play/pause button so it says pause
+      function setButtonPause()
+      {
+        playDiv.innerHTML = "<button onclick='userPause()'>Pause!</button>";
+      }
+    </script>
+
+  </body>
+</html>

@@ -1,0 +1,30 @@
+<?xml version='1.0'?>
+<sdf version='1.7'><model name='plugin_unit_sphere_0'>
+  <pose>0 0 1.5 0 -0 0</pose>
+  <link name='link_1'>
+    <turnGravityOff>1</turnGravityOff>
+    <gravity>0</gravity>
+    <collision name='collision'>
+      <geometry>
+        <sphere>
+          <radius>0.5</radius>
+        </sphere>
+      </geometry>
+    </collision>
+    <visual name='visual'>
+      <geometry>
+        <sphere>
+          <radius>0.5</radius>
+        </sphere>
+      </geometry>
+      <material>
+        <script>
+          <name>Gazebo/Grey</name>
+          <uri>file://media/materials/scripts/gazebo.material</uri>
+        </script>
+      </material>
+    </visual>
+  </link>
+  <plugin name="model_push" filename="libmodel_push.so"/>
+</model>
+</sdf>
